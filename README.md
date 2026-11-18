@@ -74,6 +74,49 @@ jobs:
           token: ${{ github.token }}
 ```
 
+### `sync-upstream`
+
+Merges an upstream repo's branch into this repo and pushes. No-op when already
+up to date. Fails loudly on merge conflicts (and aborts, so your branch stays
+clean).
+
+| input | default | what |
+|---|---|---|
+| `token` | — | `${{ github.token }}` (needs `contents: write`) |
+| `upstream-repo` | — | e.g. `themrsami/scribd-downloader` |
+| `branch` | `main` | branch to sync |
+
+Notes:
+- Pushes made with `github.token` do **not** trigger other workflows (GitHub
+  blocks that to prevent loops). Pass a PAT as `token` if the sync push should
+  also run your publish CI.
+- Use `actions/checkout` with `fetch-depth: 0` (the action also unshallows by
+  itself, belt and suspenders).
+
+```yaml
+on:
+  schedule:
+    - cron: "0 6 * * 1"   # Mondays 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: StavBenSimchon/github-actions/.github/actions/sync-upstream@main
+        with:
+          token: ${{ github.token }}
+          upstream-repo: themrsami/scribd-downloader
+          branch: main
+```
+
 ## Notes
 
 - **Pruning and user-owned packages**: `GITHUB_TOKEN` can delete versions of

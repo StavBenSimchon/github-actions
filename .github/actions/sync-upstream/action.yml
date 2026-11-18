@@ -1,0 +1,23 @@
+name: "Sync fork with upstream"
+description: "Merge an upstream repo's branch into this repo and push. No-op when already up to date."
+inputs:
+  token:
+    description: "Token used to push. github.token works with contents: write (push will NOT trigger other workflows). Use a PAT if the sync push should trigger CI."
+    required: true
+  upstream-repo:
+    description: "Upstream repository, e.g. themrsami/scribd-downloader"
+    required: true
+  branch:
+    description: "Branch to sync"
+    required: false
+    default: "main"
+runs:
+  using: "composite"
+  steps:
+    - name: Sync with upstream
+      shell: bash
+      env:
+        TOKEN: ${{ inputs.token }}
+        UPSTREAM_REPO: ${{ inputs.upstream-repo }}
+        BRANCH: ${{ inputs.branch }}
+      run: bash "${{ github.action_path }}/action.sh"
