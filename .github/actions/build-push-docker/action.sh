@@ -38,7 +38,9 @@ if [ -n "$TARGET" ]; then
 fi
 
 echo "Building ${IMAGE} -> ${TAGS[*]}"
-docker buildx build --push "${BUILD[@]}" "${TAGS[@]}" "$CONTEXT"
+# --provenance=false: attestations count as extra "versions" in GHCR and
+# would make keep-N pruning count garbage instead of real images
+docker buildx build --push --provenance=false --sbom=false "${BUILD[@]}" "${TAGS[@]}" "$CONTEXT"
 echo "Pushed ${IMAGE} (sha-${SHORT_SHA})"
 
 # keep only the newest $KEEP versions (package name = owner/image, no registry)
