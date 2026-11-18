@@ -12,16 +12,20 @@ fi
 CHART_NAME=$(awk '/^name:/{print $2; exit}' "$CHART_DIR/Chart.yaml")
 echo "Packaging helm chart '${CHART_NAME}' from '${CHART_DIR}'"
 
+# OCI refs must be lowercase
+REPO="${GITHUB_REPOSITORY,,}"
+CHART_NAME="${CHART_NAME,,}"
+
 OUT=$(mktemp -d)
 helm package "$CHART_DIR" --destination "$OUT"
 
 echo "$TOKEN" | helm registry login "$REGISTRY" -u "$GITHUB_ACTOR" --password-stdin
 
 for pkg in "$OUT"/*.tgz; do
-  echo "Pushing $(basename "$pkg") -> oci://${REGISTRY}/${GITHUB_REPOSITORY}/charts"
-  helm push "$pkg" "oci://${REGISTRY}/${GITHUB_REPOSITORY}/charts"
+  echo "Pushing $(basename "$pkg") -> oci://${REGISTRY}/${REPO}/charts"
+  helm push "$pkg" "oci://${REGISTRY}/${REPO}/charts"
 done
 
 # keep only the newest $KEEP chart versions
 KEEP="$KEEP" TOKEN="$TOKEN" CLEANUP_TOKEN="$CLEANUP_TOKEN" \
-  bash "${GITHUB_ACTION_PATH}/prune.sh" "${GITHUB_REPOSITORY}/charts/${CHART_NAME}"
+  bash "${GITHUB_ACTION_PATH}/prune.sh" "${REPO}/charts/${CHART_NAME}"

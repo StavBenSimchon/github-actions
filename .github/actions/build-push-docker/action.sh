@@ -4,6 +4,9 @@ set -euo pipefail
 
 OWNER="${GITHUB_REPOSITORY%%/*}"
 IMAGE_NAME="${IMAGE_NAME:-$(basename "$GITHUB_REPOSITORY")}"
+# OCI refs must be lowercase
+OWNER="${OWNER,,}"
+IMAGE_NAME="${IMAGE_NAME,,}"
 IMAGE="${REGISTRY}/${OWNER}/${IMAGE_NAME}"
 DEFAULT_BRANCH=$(jq -r '.repository.default_branch // "main"' "$GITHUB_EVENT_PATH")
 SHORT_SHA="${GITHUB_SHA:0:7}"
@@ -38,6 +41,6 @@ echo "Building ${IMAGE} -> ${TAGS[*]}"
 docker buildx build --push "${BUILD[@]}" "${TAGS[@]}" "$CONTEXT"
 echo "Pushed ${IMAGE} (sha-${SHORT_SHA})"
 
-# keep only the newest $KEEP versions
+# keep only the newest $KEEP versions (package name = owner/image, no registry)
 KEEP="$KEEP" TOKEN="$TOKEN" CLEANUP_TOKEN="$CLEANUP_TOKEN" \
-  bash "${GITHUB_ACTION_PATH}/prune.sh" "${IMAGE}"
+  bash "${GITHUB_ACTION_PATH}/prune.sh" "${OWNER}/${IMAGE_NAME}"

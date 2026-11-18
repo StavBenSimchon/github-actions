@@ -5,6 +5,7 @@
 set -uo pipefail
 
 PACKAGE="${1:?package name required}"
+PACKAGE="${PACKAGE,,}"   # GHCR package names are lowercase
 KEEP="${KEEP:-3}"
 OWNER="${GITHUB_REPOSITORY%%/*}"
 export GH_TOKEN="${CLEANUP_TOKEN:-${TOKEN}}"
