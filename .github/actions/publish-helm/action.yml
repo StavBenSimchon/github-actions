@@ -1,0 +1,34 @@
+name: "Publish Helm chart"
+description: "If a helm/ directory exists, package its chart and push to GHCR as OCI, then prune old versions (keeps newest N)"
+inputs:
+  token:
+    description: "GitHub token with packages:write"
+    required: true
+  cleanup-token:
+    description: "Optional classic PAT with read:packages + delete:packages. Needed to prune user-owned packages where GITHUB_TOKEN may lack delete rights."
+    required: false
+    default: ""
+  chart-dir:
+    description: "Directory containing Chart.yaml"
+    required: false
+    default: "helm"
+  keep:
+    description: "How many newest chart versions to keep after publish"
+    required: false
+    default: "3"
+  registry:
+    description: "Container registry"
+    required: false
+    default: "ghcr.io"
+runs:
+  using: "composite"
+  steps:
+    - name: Package, push and prune
+      shell: bash
+      env:
+        TOKEN: ${{ inputs.token }}
+        CLEANUP_TOKEN: ${{ inputs.cleanup-token }}
+        CHART_DIR: ${{ inputs.chart-dir }}
+        KEEP: ${{ inputs.keep }}
+        REGISTRY: ${{ inputs.registry }}
+      run: bash "${{ github.action_path }}/action.sh"

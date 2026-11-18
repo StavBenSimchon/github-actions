@@ -1,0 +1,54 @@
+name: "Build & push Docker image"
+description: "Build a Docker image, push to GHCR, then prune old versions (keeps newest N)"
+inputs:
+  token:
+    description: "GitHub token with packages:write"
+    required: true
+  cleanup-token:
+    description: "Optional classic PAT with read:packages + delete:packages. Needed to prune user-owned packages where GITHUB_TOKEN may lack delete rights."
+    required: false
+    default: ""
+  image-name:
+    description: "Image name under ghcr.io/<owner>/. Default: repository name"
+    required: false
+    default: ""
+  dockerfile:
+    description: "Path to Dockerfile"
+    required: false
+    default: "Dockerfile"
+  context:
+    description: "Build context directory"
+    required: false
+    default: "."
+  target:
+    description: "Multi-stage build target. Empty = default stage"
+    required: false
+    default: ""
+  extra-tags:
+    description: "Comma separated extra tags"
+    required: false
+    default: ""
+  keep:
+    description: "How many newest versions to keep after publish"
+    required: false
+    default: "3"
+  registry:
+    description: "Container registry"
+    required: false
+    default: "ghcr.io"
+runs:
+  using: "composite"
+  steps:
+    - name: Build, push and prune
+      shell: bash
+      env:
+        TOKEN: ${{ inputs.token }}
+        CLEANUP_TOKEN: ${{ inputs.cleanup-token }}
+        IMAGE_NAME: ${{ inputs.image-name }}
+        DOCKERFILE: ${{ inputs.dockerfile }}
+        CONTEXT: ${{ inputs.context }}
+        TARGET: ${{ inputs.target }}
+        EXTRA_TAGS: ${{ inputs.extra-tags }}
+        KEEP: ${{ inputs.keep }}
+        REGISTRY: ${{ inputs.registry }}
+      run: bash "${{ github.action_path }}/action.sh"
